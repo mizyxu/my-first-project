@@ -1,110 +1,434 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Campus Events App</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campus Events</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
+    :root {
+      --ink:    #0f0e0d;
+      --paper:  #f7f4ef;
+      --cream:  #ede9e1;
+      --accent: #c94a2b;
+      --muted:  #7a7267;
+      --card:   #ffffff;
+      --border: #d9d4ca;
+      --tag-bg: #f0ece4;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      background-color: #f4f4f4;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
     }
 
-    h1 {
-      text-align: center;
+    /* ── Header ── */
+    header {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
-
-    #events {
-      max-width: 700px;
-      margin: auto;
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      letter-spacing: 0.02em;
     }
-
-    .event {
-      background: white;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 6px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    .title {
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    .type {
-      color: #666;
-      margin-top: 4px;
-    }
-
-    .details {
-      margin-top: 8px;
-    }
-
-    button {
-      margin-top: 10px;
-      padding: 6px 12px;
+    header h1 span { color: var(--accent); }
+    nav { display: flex; gap: 0.25rem; }
+    nav button {
+      background: transparent;
       border: none;
-      background-color: #0077cc;
-      color: white;
+      color: #aaa;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.45rem 1rem;
       border-radius: 4px;
       cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    nav button:hover { background: #ffffff18; color: #fff; }
+    nav button.active { background: var(--accent); color: #fff; }
+
+    /* ── Layout ── */
+    main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+    /* ── Section title ── */
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 0.75rem;
+    }
+    .section-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      line-height: 1;
+    }
+    .count-badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
     }
 
-    button:hover {
-      background-color: #005fa3;
+    /* ── Filter bar ── */
+    .filter-bar {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
     }
+    .filter-bar select,
+    .filter-bar input {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      padding: 0.5rem 0.9rem;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      background: var(--card);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .filter-bar select:focus,
+    .filter-bar input:focus { border-color: var(--accent); }
+
+    /* ── Event grid ── */
+    #events-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.25rem;
+    }
+
+    /* ── Event card ── */
+    .event-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .event-card:hover {
+      box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+      transform: translateY(-2px);
+    }
+    .card-date-stripe {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 0.6rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .date-block { text-align: center; min-width: 36px; }
+    .date-block .day {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      line-height: 1;
+    }
+    .date-block .mon {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #bbb;
+    }
+    .date-sep { width: 1px; height: 32px; background: #444; }
+    .date-meta { font-size: 0.8rem; color: #ccc; }
+    .date-meta strong { display: block; color: #fff; font-size: 0.85rem; }
+
+    .card-body { padding: 1rem 1.1rem; flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
+    .card-body h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      line-height: 1.3;
+    }
+    .card-body p { font-size: 0.83rem; color: var(--muted); line-height: 1.5; }
+
+    .type-tag {
+      display: inline-block;
+      background: var(--tag-bg);
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.22rem 0.65rem;
+      border-radius: 4px;
+      align-self: flex-start;
+    }
+
+    .card-footer {
+      padding: 0.75rem 1.1rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-footer .location { font-size: 0.78rem; color: var(--muted); }
+
+    /* ── Registrations table ── */
+    #tab-registrations { display: none; }
+    .table-wrap { overflow-x: auto; border-radius: 10px; border: 1.5px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; background: var(--card); }
+    thead { background: var(--ink); color: var(--paper); }
+    thead th {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      padding: 0.9rem 1rem;
+      text-align: left;
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--cream); }
+    tbody td { padding: 0.8rem 1rem; font-size: 0.875rem; }
+    .pill {
+      display: inline-block;
+      padding: 0.2rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      background: var(--tag-bg);
+      color: var(--muted);
+    }
+
+    /* ── Empty & loading states ── */
+    .state-msg {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error-msg { color: var(--accent); }
+
+    /* ── Tab views ── */
+    .tab-view { display: none; }
+    .tab-view.active { display: block; }
   </style>
 </head>
-
 <body>
 
-<h1>Campus Events</h1>
+<header>
+  <h1>Campus <span>Events</span></h1>
+  <nav>
+    <button class="active" onclick="switchTab('events', this)">Events</button>
+    <button onclick="switchTab('registrations', this)">Registrations</button>
+  </nav>
+</header>
 
-<div id="events"></div>
+<main>
+
+  <!-- ── Events tab ── -->
+  <div id="tab-events" class="tab-view active">
+    <div class="section-header">
+      <h2>Upcoming Events</h2>
+      <span class="count-badge" id="event-count">—</span>
+    </div>
+
+    <div class="filter-bar">
+      <select id="type-filter" onchange="renderEvents()">
+        <option value="">All types</option>
+      </select>
+      <input id="search-input" type="text" placeholder="Search events…" oninput="renderEvents()" />
+    </div>
+
+    <div id="events-grid">
+      <div class="state-msg"><div class="spinner"></div>Loading events…</div>
+    </div>
+  </div>
+
+  <!-- ── Registrations tab ── -->
+  <div id="tab-registrations" class="tab-view">
+    <div class="section-header">
+      <h2>Registrations</h2>
+      <span class="count-badge" id="reg-count">—</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Student</th>
+            <th>Event</th>
+            <th>Date</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody id="reg-tbody">
+          <tr><td colspan="5" class="state-msg"><div class="spinner"></div>Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
 
 <script>
-async function loadEvents() {
-  const response = await fetch('/api/events');
-  const events = await response.json();
+  const API = 'http://localhost:3000/api';
 
-  const container = document.getElementById('events');
-  container.innerHTML = '';
+  // ── State ──────────────────────────────────────────────────────────────────
+  let allEvents = [];
+  let eventTypes = [];
 
-  events.forEach(event => {
-    const div = document.createElement('div');
-    div.className = 'event';
+  // ── Tab switching ───────────────────────────────────────────────────────────
+  function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    btn.classList.add('active');
+    if (tab === 'registrations') loadRegistrations();
+  }
 
-    div.innerHTML = `
-      <div class="title">${event.title}</div>
-      <div class="type">Type: ${event.type_name}</div>
-      <div class="details">
-        Location: ${event.location}<br>
-        Date: ${new Date(event.event_date).toLocaleString()}
-      </div>
-      <button onclick="register(${event.event_id})">Register</button>
-    `;
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+  function fmtDate(dateStr) {
+    if (!dateStr) return { day: '?', mon: '???', full: 'Unknown date', time: '' };
+    const d = new Date(dateStr);
+    return {
+      day:  d.toLocaleString('en-US', { day:   '2-digit' }),
+      mon:  d.toLocaleString('en-US', { month: 'short'  }),
+      full: d.toLocaleString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
+      time: d.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit' })
+    };
+  }
 
-    container.appendChild(div);
-  });
-}
+  // ── Load events ─────────────────────────────────────────────────────────────
+  async function loadEvents() {
+    try {
+      const [evRes, typeRes] = await Promise.all([
+        fetch(`${API}/events`),
+        fetch(`${API}/event-types`)
+      ]);
+      if (!evRes.ok) throw new Error(`Events API: ${evRes.status} ${evRes.statusText}`);
 
-async function register(eventId) {
-  await fetch('/api/register', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      user_id: 1,
-      event_id: eventId
-    })
-  });
+      allEvents  = await evRes.json();
+      eventTypes = typeRes.ok ? await typeRes.json() : [];
 
-  alert('Registered successfully!');
-}
+      // Populate filter dropdown
+      const sel = document.getElementById('type-filter');
+      eventTypes.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.type_name;
+        opt.textContent = t.type_name;
+        sel.appendChild(opt);
+      });
 
-loadEvents();
+      renderEvents();
+    } catch (err) {
+      document.getElementById('events-grid').innerHTML =
+        `<div class="state-msg error-msg">⚠️ ${err.message}<br><small>Is the server running on port 3000?</small></div>`;
+    }
+  }
+
+  // ── Render filtered events ──────────────────────────────────────────────────
+  function renderEvents() {
+    const typeFilter = document.getElementById('type-filter').value.toLowerCase();
+    const searchVal  = document.getElementById('search-input').value.toLowerCase();
+
+    const filtered = allEvents.filter(ev => {
+      const matchType   = !typeFilter || (ev.type_name || '').toLowerCase() === typeFilter;
+      const matchSearch = !searchVal  ||
+        (ev.title        || '').toLowerCase().includes(searchVal) ||
+        (ev.description  || '').toLowerCase().includes(searchVal) ||
+        (ev.location     || '').toLowerCase().includes(searchVal);
+      return matchType && matchSearch;
+    });
+
+    document.getElementById('event-count').textContent = filtered.length;
+    const grid = document.getElementById('events-grid');
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `<div class="state-msg">No events match your filters.</div>`;
+      return;
+    }
+
+    grid.innerHTML = filtered.map(ev => {
+      const d = fmtDate(ev.event_date);
+      return `
+        <div class="event-card">
+          <div class="card-date-stripe">
+            <div class="date-block">
+              <div class="day">${d.day}</div>
+              <div class="mon">${d.mon}</div>
+            </div>
+            <div class="date-sep"></div>
+            <div class="date-meta">
+              <strong>${d.full}</strong>
+              ${d.time}
+            </div>
+          </div>
+          <div class="card-body">
+            <span class="type-tag">${ev.type_name || 'General'}</span>
+            <h3>${ev.title || 'Untitled Event'}</h3>
+            ${ev.description ? `<p>${ev.description}</p>` : ''}
+          </div>
+          <div class="card-footer">
+            <span class="location">📍 ${ev.location || 'TBD'}</span>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Load registrations ──────────────────────────────────────────────────────
+  async function loadRegistrations() {
+    const tbody = document.getElementById('reg-tbody');
+    tbody.innerHTML = `<tr><td colspan="5" class="state-msg"><div class="spinner"></div>Loading…</td></tr>`;
+    try {
+      const res = await fetch(`${API}/registrations`);
+      if (!res.ok) throw new Error(`Registrations API: ${res.status} ${res.statusText}`);
+      const rows = await res.json();
+      document.getElementById('reg-count').textContent = rows.length;
+      if (rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="state-msg">No registrations yet.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = rows.map((r, i) => {
+        const d = fmtDate(r.event_date);
+        return `<tr>
+          <td style="color:var(--muted);font-size:.8rem">${i + 1}</td>
+          <td><strong>${r.first_name} ${r.last_name}</strong><br>
+              <small style="color:var(--muted)">${r.email || ''}</small></td>
+          <td>${r.title}</td>
+          <td style="font-size:.82rem;color:var(--muted)">${d.full}</td>
+          <td><span class="pill">${r.type_name}</span></td>
+        </tr>`;
+      }).join('');
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="5" class="state-msg error-msg">⚠️ ${err.message}</td></tr>`;
+    }
+  }
+
+  // ── Boot ─────────────────────────────────────────────────────────────────────
+  loadEvents();
 </script>
-
 </body>
 </html>
