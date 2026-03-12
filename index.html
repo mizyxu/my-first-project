@@ -4,234 +4,348 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Campus Events</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --ink:    #0f0e0d;
-      --paper:  #f7f4ef;
-      --cream:  #ede9e1;
-      --accent: #c94a2b;
-      --muted:  #7a7267;
-      --card:   #ffffff;
-      --border: #d9d4ca;
-      --tag-bg: #f0ece4;
+      --bg:        #0a0e1a;
+      --surface:   #111827;
+      --card:      #161d2e;
+      --border:    #1f2d45;
+      --violet:    #7c5cfc;
+      --violet-lt: #9d82fd;
+      --teal:      #2dd4bf;
+      --rose:      #f472b6;
+      --amber:     #fbbf24;
+      --text:      #f0f4ff;
+      --muted:     #6b7fa3;
+      --soft:      #a8b8d8;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--paper);
-      color: var(--ink);
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
+    }
+
+    /* Subtle radial glow behind header */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 500px;
+      background: radial-gradient(ellipse, rgba(124,92,252,0.18) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
     }
 
     /* ── Header ── */
     header {
-      background: var(--ink);
-      color: var(--paper);
-      padding: 0 2rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 64px;
+      padding: 0 2.5rem;
+      height: 68px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,14,26,0.85);
+      backdrop-filter: blur(12px);
       position: sticky;
       top: 0;
       z-index: 100;
     }
-    header h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.4rem;
-      letter-spacing: 0.02em;
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+      color: var(--text);
     }
-    header h1 span { color: var(--accent); }
-    nav { display: flex; gap: 0.25rem; }
+    .logo span {
+      background: linear-gradient(90deg, var(--violet-lt), var(--teal));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    nav { display: flex; gap: 0.375rem; }
     nav button {
-      background: transparent;
-      border: none;
-      color: #aaa;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.85rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.825rem;
       font-weight: 500;
-      padding: 0.45rem 1rem;
-      border-radius: 4px;
+      padding: 0.45rem 1.1rem;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
       cursor: pointer;
-      transition: background 0.15s, color 0.15s;
+      transition: all 0.18s;
     }
-    nav button:hover { background: #ffffff18; color: #fff; }
-    nav button.active { background: var(--accent); color: #fff; }
+    nav button:hover { color: var(--text); background: var(--surface); }
+    nav button.active {
+      background: var(--violet);
+      color: #fff;
+      border-color: var(--violet);
+    }
 
-    /* ── Layout ── */
-    main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+    /* ── Main ── */
+    main {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 3rem 2rem 6rem;
+      position: relative;
+      z-index: 1;
+    }
 
-    /* ── Section title ── */
+    /* ── Page title ── */
     .section-header {
-      display: flex;
-      align-items: baseline;
-      gap: 1rem;
-      margin-bottom: 1.75rem;
-      border-bottom: 2px solid var(--ink);
-      padding-bottom: 0.75rem;
+      margin-bottom: 2rem;
     }
     .section-header h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 2rem;
-      line-height: 1;
+      font-family: 'Syne', sans-serif;
+      font-size: 2.25rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
     }
     .count-badge {
-      background: var(--accent);
-      color: #fff;
+      font-family: 'Inter', sans-serif;
       font-size: 0.75rem;
-      font-weight: 500;
-      padding: 0.2rem 0.6rem;
+      font-weight: 600;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--soft);
+      padding: 0.25rem 0.75rem;
       border-radius: 20px;
+    }
+    .section-header p {
+      margin-top: 0.4rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 300;
     }
 
     /* ── Filter bar ── */
     .filter-bar {
       display: flex;
       gap: 0.75rem;
+      margin-bottom: 2rem;
       flex-wrap: wrap;
-      margin-bottom: 1.5rem;
     }
     .filter-bar select,
     .filter-bar input {
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 0.85rem;
-      padding: 0.5rem 0.9rem;
-      border: 1.5px solid var(--border);
-      border-radius: 6px;
-      background: var(--card);
-      color: var(--ink);
+      font-weight: 400;
+      padding: 0.55rem 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
       outline: none;
-      transition: border-color 0.15s;
+      appearance: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
+    .filter-bar input { min-width: 220px; }
     .filter-bar select:focus,
-    .filter-bar input:focus { border-color: var(--accent); }
+    .filter-bar input:focus {
+      border-color: var(--violet);
+      box-shadow: 0 0 0 3px rgba(124,92,252,0.15);
+    }
+    .filter-bar input::placeholder { color: var(--muted); }
 
-    /* ── Event grid ── */
+    /* ── Grid ── */
     #events-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 1.25rem;
     }
 
-    /* ── Event card ── */
+    /* ── Card ── */
     .event-card {
       background: var(--card);
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      transition: box-shadow 0.2s, transform 0.2s;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      animation: fadeUp 0.3s ease both;
     }
     .event-card:hover {
-      box-shadow: 0 6px 24px rgba(0,0,0,0.10);
-      transform: translateY(-2px);
+      transform: translateY(-3px);
+      border-color: var(--violet);
+      box-shadow: 0 8px 32px rgba(124,92,252,0.15);
     }
-    .card-date-stripe {
-      background: var(--ink);
-      color: var(--paper);
-      padding: 0.6rem 1rem;
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Thin colored top bar per card */
+    .event-card:nth-child(4n+1) { --accent: var(--violet); }
+    .event-card:nth-child(4n+2) { --accent: var(--teal);   }
+    .event-card:nth-child(4n+3) { --accent: var(--rose);   }
+    .event-card:nth-child(4n+4) { --accent: var(--amber);  }
+
+    .card-accent-bar {
+      height: 3px;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .card-top {
+      padding: 1.1rem 1.25rem 0.75rem;
       display: flex;
-      align-items: center;
-      gap: 0.75rem;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
     }
-    .date-block { text-align: center; min-width: 36px; }
-    .date-block .day {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.6rem;
+    .date-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.45rem 0.75rem;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .date-chip .day {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
       line-height: 1;
+      color: var(--text);
     }
-    .date-block .mon {
-      font-size: 0.7rem;
+    .date-chip .mon {
+      font-size: 0.65rem;
+      font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      color: #bbb;
-    }
-    .date-sep { width: 1px; height: 32px; background: #444; }
-    .date-meta { font-size: 0.8rem; color: #ccc; }
-    .date-meta strong { display: block; color: #fff; font-size: 0.85rem; }
-
-    .card-body { padding: 1rem 1.1rem; flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
-    .card-body h3 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.1rem;
-      line-height: 1.3;
-    }
-    .card-body p { font-size: 0.83rem; color: var(--muted); line-height: 1.5; }
-
-    .type-tag {
-      display: inline-block;
-      background: var(--tag-bg);
       color: var(--muted);
-      font-size: 0.72rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      padding: 0.22rem 0.65rem;
-      border-radius: 4px;
-      align-self: flex-start;
     }
-
-    .card-footer {
-      padding: 0.75rem 1.1rem;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .card-footer .location { font-size: 0.78rem; color: var(--muted); }
-
-    /* ── Registrations table ── */
-    #tab-registrations { display: none; }
-    .table-wrap { overflow-x: auto; border-radius: 10px; border: 1.5px solid var(--border); }
-    table { width: 100%; border-collapse: collapse; background: var(--card); }
-    thead { background: var(--ink); color: var(--paper); }
-    thead th {
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 500;
-      font-size: 0.78rem;
+    .type-tag {
+      font-size: 0.68rem;
+      font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.09em;
-      padding: 0.9rem 1rem;
-      text-align: left;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      background: rgba(124,92,252,0.15);
+      color: var(--violet-lt);
+      border: 1px solid rgba(124,92,252,0.25);
+      white-space: nowrap;
     }
-    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: var(--cream); }
-    tbody td { padding: 0.8rem 1rem; font-size: 0.875rem; }
-    .pill {
-      display: inline-block;
-      padding: 0.2rem 0.65rem;
-      border-radius: 20px;
-      font-size: 0.72rem;
-      font-weight: 500;
-      background: var(--tag-bg);
+
+    .card-body {
+      padding: 0.5rem 1.25rem 1rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .card-body h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.35;
+      color: var(--text);
+    }
+    .card-body p {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.55;
+      font-weight: 300;
+    }
+    .meta-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.78rem;
+      color: var(--soft);
+      margin-top: 0.25rem;
+    }
+    .meta-row svg { opacity: 0.6; flex-shrink: 0; }
+
+    .card-footer {
+      padding: 0.75rem 1.25rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .time-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .full-date {
+      font-size: 0.75rem;
       color: var(--muted);
     }
 
-    /* ── Empty & loading states ── */
+    /* ── Registrations table ── */
+    .table-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: var(--surface); }
+    thead th {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 1rem 1.25rem;
+      text-align: left;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(124,92,252,0.05); }
+    tbody td { padding: 0.9rem 1.25rem; font-size: 0.875rem; color: var(--soft); }
+    tbody td strong { color: var(--text); font-weight: 600; }
+    .pill {
+      display: inline-block;
+      padding: 0.22rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: rgba(45,212,191,0.12);
+      color: var(--teal);
+      border: 1px solid rgba(45,212,191,0.25);
+    }
+
+    /* ── States ── */
     .state-msg {
       grid-column: 1 / -1;
       text-align: center;
-      padding: 3rem 1rem;
+      padding: 4rem 1rem;
       color: var(--muted);
-      font-size: 0.95rem;
+      font-size: 0.9rem;
     }
     .spinner {
       width: 32px; height: 32px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent);
+      border: 2.5px solid var(--border);
+      border-top-color: var(--violet);
       border-radius: 50%;
-      animation: spin 0.7s linear infinite;
+      animation: spin 0.75s linear infinite;
       margin: 0 auto 1rem;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .error-msg { color: var(--accent); }
+    .error-msg { color: var(--rose); }
 
-    /* ── Tab views ── */
     .tab-view { display: none; }
     .tab-view.active { display: block; }
   </style>
@@ -239,7 +353,7 @@
 <body>
 
 <header>
-  <h1>Campus <span>Events</span></h1>
+  <div class="logo">Campus <span>Events</span></div>
   <nav>
     <button class="active" onclick="switchTab('events', this)">Events</button>
     <button onclick="switchTab('registrations', this)">Registrations</button>
@@ -248,41 +362,39 @@
 
 <main>
 
-  <!-- ── Events tab ── -->
+  <!-- Events -->
   <div id="tab-events" class="tab-view active">
     <div class="section-header">
-      <h2>Upcoming Events</h2>
-      <span class="count-badge" id="event-count">—</span>
+      <h2>
+        Upcoming Events
+        <span class="count-badge" id="event-count">—</span>
+      </h2>
+      <p>Browse and discover everything happening on campus</p>
     </div>
-
     <div class="filter-bar">
       <select id="type-filter" onchange="renderEvents()">
-        <option value="">All types</option>
+        <option value="">All event types</option>
       </select>
-      <input id="search-input" type="text" placeholder="Search events…" oninput="renderEvents()" />
+      <input id="search-input" type="text" placeholder="Search events, locations…" oninput="renderEvents()" />
     </div>
-
     <div id="events-grid">
       <div class="state-msg"><div class="spinner"></div>Loading events…</div>
     </div>
   </div>
 
-  <!-- ── Registrations tab ── -->
+  <!-- Registrations -->
   <div id="tab-registrations" class="tab-view">
     <div class="section-header">
-      <h2>Registrations</h2>
-      <span class="count-badge" id="reg-count">—</span>
+      <h2>
+        Registrations
+        <span class="count-badge" id="reg-count">—</span>
+      </h2>
+      <p>All student event registrations</p>
     </div>
     <div class="table-wrap">
       <table>
         <thead>
-          <tr>
-            <th>#</th>
-            <th>Student</th>
-            <th>Event</th>
-            <th>Date</th>
-            <th>Type</th>
-          </tr>
+          <tr><th>#</th><th>Student</th><th>Event</th><th>Date</th><th>Type</th></tr>
         </thead>
         <tbody id="reg-tbody">
           <tr><td colspan="5" class="state-msg"><div class="spinner"></div>Loading…</td></tr>
@@ -295,12 +407,8 @@
 
 <script>
   const API = 'http://localhost:3000/api';
-
-  // ── State ──────────────────────────────────────────────────────────────────
   let allEvents = [];
-  let eventTypes = [];
 
-  // ── Tab switching ───────────────────────────────────────────────────────────
   function switchTab(tab, btn) {
     document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
@@ -309,116 +417,105 @@
     if (tab === 'registrations') loadRegistrations();
   }
 
-  // ── Helpers ─────────────────────────────────────────────────────────────────
   function fmtDate(dateStr) {
-    if (!dateStr) return { day: '?', mon: '???', full: 'Unknown date', time: '' };
+    if (!dateStr) return { day: '?', mon: '???', full: 'Unknown', time: '' };
     const d = new Date(dateStr);
     return {
-      day:  d.toLocaleString('en-US', { day:   '2-digit' }),
-      mon:  d.toLocaleString('en-US', { month: 'short'  }),
-      full: d.toLocaleString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
+      day:  d.toLocaleString('en-US', { day: '2-digit' }),
+      mon:  d.toLocaleString('en-US', { month: 'short' }),
+      full: d.toLocaleString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' }),
       time: d.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit' })
     };
   }
 
-  // ── Load events ─────────────────────────────────────────────────────────────
   async function loadEvents() {
     try {
       const [evRes, typeRes] = await Promise.all([
         fetch(`${API}/events`),
         fetch(`${API}/event-types`)
       ]);
-      if (!evRes.ok) throw new Error(`Events API: ${evRes.status} ${evRes.statusText}`);
-
-      allEvents  = await evRes.json();
-      eventTypes = typeRes.ok ? await typeRes.json() : [];
-
-      // Populate filter dropdown
+      if (!evRes.ok) throw new Error(`${evRes.status} ${evRes.statusText}`);
+      allEvents = await evRes.json();
+      const types = typeRes.ok ? await typeRes.json() : [];
       const sel = document.getElementById('type-filter');
-      eventTypes.forEach(t => {
-        const opt = document.createElement('option');
-        opt.value = t.type_name;
-        opt.textContent = t.type_name;
-        sel.appendChild(opt);
+      types.forEach(t => {
+        const o = document.createElement('option');
+        o.value = t.type_name; o.textContent = t.type_name;
+        sel.appendChild(o);
       });
-
       renderEvents();
     } catch (err) {
       document.getElementById('events-grid').innerHTML =
-        `<div class="state-msg error-msg">⚠️ ${err.message}<br><small>Is the server running on port 3000?</small></div>`;
+        `<div class="state-msg error-msg">⚠️ ${err.message}<br><small style="color:var(--muted)">Is the server running on port 3000?</small></div>`;
     }
   }
 
-  // ── Render filtered events ──────────────────────────────────────────────────
   function renderEvents() {
     const typeFilter = document.getElementById('type-filter').value.toLowerCase();
-    const searchVal  = document.getElementById('search-input').value.toLowerCase();
-
-    const filtered = allEvents.filter(ev => {
-      const matchType   = !typeFilter || (ev.type_name || '').toLowerCase() === typeFilter;
-      const matchSearch = !searchVal  ||
-        (ev.title        || '').toLowerCase().includes(searchVal) ||
-        (ev.description  || '').toLowerCase().includes(searchVal) ||
-        (ev.location     || '').toLowerCase().includes(searchVal);
-      return matchType && matchSearch;
+    const search     = document.getElementById('search-input').value.toLowerCase();
+    const filtered   = allEvents.filter(ev => {
+      const mt = !typeFilter || (ev.type_name||'').toLowerCase() === typeFilter;
+      const ms = !search || [ev.title, ev.description, ev.location].some(f => (f||'').toLowerCase().includes(search));
+      return mt && ms;
     });
 
     document.getElementById('event-count').textContent = filtered.length;
     const grid = document.getElementById('events-grid');
 
-    if (filtered.length === 0) {
+    if (!filtered.length) {
       grid.innerHTML = `<div class="state-msg">No events match your filters.</div>`;
       return;
     }
 
-    grid.innerHTML = filtered.map(ev => {
+    grid.innerHTML = filtered.map((ev, i) => {
       const d = fmtDate(ev.event_date);
       return `
-        <div class="event-card">
-          <div class="card-date-stripe">
-            <div class="date-block">
+        <div class="event-card" style="animation-delay:${i * 0.04}s">
+          <div class="card-accent-bar"></div>
+          <div class="card-top">
+            <div class="date-chip">
               <div class="day">${d.day}</div>
               <div class="mon">${d.mon}</div>
             </div>
-            <div class="date-sep"></div>
-            <div class="date-meta">
-              <strong>${d.full}</strong>
-              ${d.time}
-            </div>
+            <span class="type-tag">${ev.type_name || 'General'}</span>
           </div>
           <div class="card-body">
-            <span class="type-tag">${ev.type_name || 'General'}</span>
             <h3>${ev.title || 'Untitled Event'}</h3>
             ${ev.description ? `<p>${ev.description}</p>` : ''}
+            ${ev.location ? `
+            <div class="meta-row">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              ${ev.location}
+            </div>` : ''}
           </div>
           <div class="card-footer">
-            <span class="location">📍 ${ev.location || 'TBD'}</span>
+            <span class="full-date">${d.full}</span>
+            <span class="time-label">${d.time}</span>
           </div>
         </div>`;
     }).join('');
   }
 
-  // ── Load registrations ──────────────────────────────────────────────────────
   async function loadRegistrations() {
     const tbody = document.getElementById('reg-tbody');
     tbody.innerHTML = `<tr><td colspan="5" class="state-msg"><div class="spinner"></div>Loading…</td></tr>`;
     try {
       const res = await fetch(`${API}/registrations`);
-      if (!res.ok) throw new Error(`Registrations API: ${res.status} ${res.statusText}`);
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
       const rows = await res.json();
       document.getElementById('reg-count').textContent = rows.length;
-      if (rows.length === 0) {
+      if (!rows.length) {
         tbody.innerHTML = `<tr><td colspan="5" class="state-msg">No registrations yet.</td></tr>`;
         return;
       }
       tbody.innerHTML = rows.map((r, i) => {
         const d = fmtDate(r.event_date);
         return `<tr>
-          <td style="color:var(--muted);font-size:.8rem">${i + 1}</td>
+          <td style="color:var(--border);font-size:.8rem">${i+1}</td>
           <td><strong>${r.first_name} ${r.last_name}</strong><br>
-              <small style="color:var(--muted)">${r.email || ''}</small></td>
-          <td>${r.title}</td>
-          <td style="font-size:.82rem;color:var(--muted)">${d.full}</td>
+              <small style="color:var(--muted);font-size:.78rem">${r.email||''}</small></td>
+          <td><strong>${r.title}</strong></td>
+          <td>${d.full}</td>
           <td><span class="pill">${r.type_name}</span></td>
         </tr>`;
       }).join('');
@@ -427,7 +524,6 @@
     }
   }
 
-  // ── Boot ─────────────────────────────────────────────────────────────────────
   loadEvents();
 </script>
 </body>
