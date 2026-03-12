@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Campus Events</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
-    :root {
+    /* ── Dark theme (default) ── */
+    :root, [data-theme="dark"] {
       --bg:        #0a0e1a;
       --surface:   #111827;
       --card:      #161d2e;
@@ -19,6 +20,42 @@
       --text:      #f0f4ff;
       --muted:     #6b7fa3;
       --soft:      #a8b8d8;
+      --glow:      rgba(124,92,252,0.18);
+      --header-bg: rgba(10,14,26,0.85);
+      --hover-row: rgba(124,92,252,0.05);
+      --tag-bg:    rgba(124,92,252,0.15);
+      --tag-color: var(--violet-lt);
+      --tag-border:rgba(124,92,252,0.25);
+      --pill-bg:   rgba(45,212,191,0.12);
+      --pill-color:var(--teal);
+      --pill-border:rgba(45,212,191,0.25);
+      --toggle-icon: "☀️";
+    }
+
+    /* ── Light theme ── */
+    [data-theme="light"] {
+      --bg:        #f4f6fb;
+      --surface:   #ffffff;
+      --card:      #ffffff;
+      --border:    #e2e8f4;
+      --violet:    #6246ea;
+      --violet-lt: #7c5cfc;
+      --teal:      #0d9488;
+      --rose:      #db2777;
+      --amber:     #d97706;
+      --text:      #0f172a;
+      --muted:     #64748b;
+      --soft:      #475569;
+      --glow:      rgba(98,70,234,0.08);
+      --header-bg: rgba(244,246,251,0.9);
+      --hover-row: rgba(98,70,234,0.04);
+      --tag-bg:    rgba(98,70,234,0.08);
+      --tag-color: var(--violet);
+      --tag-border:rgba(98,70,234,0.2);
+      --pill-bg:   rgba(13,148,136,0.08);
+      --pill-color:var(--teal);
+      --pill-border:rgba(13,148,136,0.2);
+      --toggle-icon: "🌙";
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,9 +65,9 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
     }
 
-    /* Subtle radial glow behind header */
     body::before {
       content: '';
       position: fixed;
@@ -39,9 +76,10 @@
       transform: translateX(-50%);
       width: 900px;
       height: 500px;
-      background: radial-gradient(ellipse, rgba(124,92,252,0.18) 0%, transparent 70%);
+      background: radial-gradient(ellipse, var(--glow) 0%, transparent 70%);
       pointer-events: none;
       z-index: 0;
+      transition: background 0.3s;
     }
 
     /* ── Header ── */
@@ -52,11 +90,12 @@
       padding: 0 2.5rem;
       height: 68px;
       border-bottom: 1px solid var(--border);
-      background: rgba(10,14,26,0.85);
-      backdrop-filter: blur(12px);
+      background: var(--header-bg);
+      backdrop-filter: blur(14px);
       position: sticky;
       top: 0;
       z-index: 100;
+      transition: background 0.3s, border-color 0.3s;
     }
 
     .logo {
@@ -73,6 +112,8 @@
       background-clip: text;
     }
 
+    .header-right { display: flex; align-items: center; gap: 0.75rem; }
+
     nav { display: flex; gap: 0.375rem; }
     nav button {
       font-family: 'Inter', sans-serif;
@@ -87,11 +128,24 @@
       transition: all 0.18s;
     }
     nav button:hover { color: var(--text); background: var(--surface); }
-    nav button.active {
-      background: var(--violet);
-      color: #fff;
-      border-color: var(--violet);
+    nav button.active { background: var(--violet); color: #fff; border-color: var(--violet); }
+
+    /* ── Theme toggle ── */
+    .theme-toggle {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      transition: all 0.18s;
+      flex-shrink: 0;
     }
+    .theme-toggle:hover { border-color: var(--violet); box-shadow: 0 0 0 3px var(--tag-bg); }
 
     /* ── Main ── */
     main {
@@ -102,10 +156,7 @@
       z-index: 1;
     }
 
-    /* ── Page title ── */
-    .section-header {
-      margin-bottom: 2rem;
-    }
+    .section-header { margin-bottom: 2rem; }
     .section-header h2 {
       font-family: 'Syne', sans-serif;
       font-size: 2.25rem;
@@ -134,12 +185,7 @@
     }
 
     /* ── Filter bar ── */
-    .filter-bar {
-      display: flex;
-      gap: 0.75rem;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-    }
+    .filter-bar { display: flex; gap: 0.75rem; margin-bottom: 2rem; flex-wrap: wrap; }
     .filter-bar select,
     .filter-bar input {
       font-family: 'Inter', sans-serif;
@@ -152,13 +198,13 @@
       color: var(--text);
       outline: none;
       appearance: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.3s;
     }
     .filter-bar input { min-width: 220px; }
     .filter-bar select:focus,
     .filter-bar input:focus {
       border-color: var(--violet);
-      box-shadow: 0 0 0 3px rgba(124,92,252,0.15);
+      box-shadow: 0 0 0 3px var(--tag-bg);
     }
     .filter-bar input::placeholder { color: var(--muted); }
 
@@ -177,30 +223,34 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s, background 0.3s;
       animation: fadeUp 0.3s ease both;
     }
+
+    [data-theme="light"] .event-card {
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+    }
+
     .event-card:hover {
       transform: translateY(-3px);
       border-color: var(--violet);
       box-shadow: 0 8px 32px rgba(124,92,252,0.15);
     }
+    [data-theme="light"] .event-card:hover {
+      box-shadow: 0 8px 32px rgba(98,70,234,0.12);
+    }
+
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(14px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* Thin colored top bar per card */
     .event-card:nth-child(4n+1) { --accent: var(--violet); }
     .event-card:nth-child(4n+2) { --accent: var(--teal);   }
     .event-card:nth-child(4n+3) { --accent: var(--rose);   }
     .event-card:nth-child(4n+4) { --accent: var(--amber);  }
 
-    .card-accent-bar {
-      height: 3px;
-      background: var(--accent);
-      flex-shrink: 0;
-    }
+    .card-accent-bar { height: 3px; background: var(--accent); flex-shrink: 0; }
 
     .card-top {
       padding: 1.1rem 1.25rem 0.75rem;
@@ -216,6 +266,7 @@
       padding: 0.45rem 0.75rem;
       text-align: center;
       flex-shrink: 0;
+      transition: background 0.3s, border-color 0.3s;
     }
     .date-chip .day {
       font-family: 'Syne', sans-serif;
@@ -238,10 +289,11 @@
       letter-spacing: 0.09em;
       padding: 0.25rem 0.65rem;
       border-radius: 6px;
-      background: rgba(124,92,252,0.15);
-      color: var(--violet-lt);
-      border: 1px solid rgba(124,92,252,0.25);
+      background: var(--tag-bg);
+      color: var(--tag-color);
+      border: 1px solid var(--tag-border);
       white-space: nowrap;
+      transition: background 0.3s, color 0.3s;
     }
 
     .card-body {
@@ -259,12 +311,7 @@
       line-height: 1.35;
       color: var(--text);
     }
-    .card-body p {
-      font-size: 0.82rem;
-      color: var(--muted);
-      line-height: 1.55;
-      font-weight: 300;
-    }
+    .card-body p { font-size: 0.82rem; color: var(--muted); line-height: 1.55; font-weight: 300; }
     .meta-row {
       display: flex;
       align-items: center;
@@ -281,26 +328,23 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      transition: border-color 0.3s;
     }
-    .time-label {
-      font-size: 0.78rem;
-      color: var(--muted);
-      font-weight: 400;
-    }
-    .full-date {
-      font-size: 0.75rem;
-      color: var(--muted);
-    }
+    .time-label, .full-date { font-size: 0.75rem; color: var(--muted); }
 
-    /* ── Registrations table ── */
+    /* ── Table ── */
     .table-wrap {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
       overflow: hidden;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    [data-theme="light"] .table-wrap {
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
     }
     table { width: 100%; border-collapse: collapse; }
-    thead { background: var(--surface); }
+    thead { background: var(--surface); transition: background 0.3s; }
     thead th {
       font-size: 0.72rem;
       font-weight: 600;
@@ -313,7 +357,7 @@
     }
     tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
     tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: rgba(124,92,252,0.05); }
+    tbody tr:hover { background: var(--hover-row); }
     tbody td { padding: 0.9rem 1.25rem; font-size: 0.875rem; color: var(--soft); }
     tbody td strong { color: var(--text); font-weight: 600; }
     .pill {
@@ -322,9 +366,10 @@
       border-radius: 20px;
       font-size: 0.7rem;
       font-weight: 600;
-      background: rgba(45,212,191,0.12);
-      color: var(--teal);
-      border: 1px solid rgba(45,212,191,0.25);
+      background: var(--pill-bg);
+      color: var(--pill-color);
+      border: 1px solid var(--pill-border);
+      transition: background 0.3s, color 0.3s;
     }
 
     /* ── States ── */
@@ -354,21 +399,20 @@
 
 <header>
   <div class="logo">Campus <span>Events</span></div>
-  <nav>
-    <button class="active" onclick="switchTab('events', this)">Events</button>
-    <button onclick="switchTab('registrations', this)">Registrations</button>
-  </nav>
+  <div class="header-right">
+    <nav>
+      <button class="active" onclick="switchTab('events', this)">Events</button>
+      <button onclick="switchTab('registrations', this)">Registrations</button>
+    </nav>
+    <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn" title="Toggle theme">☀️</button>
+  </div>
 </header>
 
 <main>
 
-  <!-- Events -->
   <div id="tab-events" class="tab-view active">
     <div class="section-header">
-      <h2>
-        Upcoming Events
-        <span class="count-badge" id="event-count">—</span>
-      </h2>
+      <h2>Upcoming Events <span class="count-badge" id="event-count">—</span></h2>
       <p>Browse and discover everything happening on campus</p>
     </div>
     <div class="filter-bar">
@@ -382,13 +426,9 @@
     </div>
   </div>
 
-  <!-- Registrations -->
   <div id="tab-registrations" class="tab-view">
     <div class="section-header">
-      <h2>
-        Registrations
-        <span class="count-badge" id="reg-count">—</span>
-      </h2>
+      <h2>Registrations <span class="count-badge" id="reg-count">—</span></h2>
       <p>All student event registrations</p>
     </div>
     <div class="table-wrap">
@@ -409,14 +449,34 @@
   const API = 'http://localhost:3000/api';
   let allEvents = [];
 
-  function switchTab(tab, btn) {
+  // ── Theme ─────────────────────────────────────────────────────────────────
+  const html = document.documentElement;
+  const btn  = document.getElementById('theme-btn');
+
+  // Respect system preference on first load
+  const saved = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const initial = saved || (prefersDark ? 'dark' : 'light');
+  html.setAttribute('data-theme', initial);
+  btn.textContent = initial === 'dark' ? '☀️' : '🌙';
+
+  function toggleTheme() {
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    btn.textContent = next === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('theme', next);
+  }
+
+  // ── Tabs ──────────────────────────────────────────────────────────────────
+  function switchTab(tab, tabBtn) {
     document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
     document.getElementById(`tab-${tab}`).classList.add('active');
-    btn.classList.add('active');
+    tabBtn.classList.add('active');
     if (tab === 'registrations') loadRegistrations();
   }
 
+  // ── Helpers ───────────────────────────────────────────────────────────────
   function fmtDate(dateStr) {
     if (!dateStr) return { day: '?', mon: '???', full: 'Unknown', time: '' };
     const d = new Date(dateStr);
@@ -428,6 +488,7 @@
     };
   }
 
+  // ── Events ────────────────────────────────────────────────────────────────
   async function loadEvents() {
     try {
       const [evRes, typeRes] = await Promise.all([
@@ -496,6 +557,7 @@
     }).join('');
   }
 
+  // ── Registrations ─────────────────────────────────────────────────────────
   async function loadRegistrations() {
     const tbody = document.getElementById('reg-tbody');
     tbody.innerHTML = `<tr><td colspan="5" class="state-msg"><div class="spinner"></div>Loading…</td></tr>`;
