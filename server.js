@@ -14,19 +14,29 @@ password: 'Cranbrook1',
 port: 5432
 });
 
-app.get('/api/books', async (req, res) => {
-try {
-const result = await pool.query(`
-SELECT books.*, authors.name as author_name
-FROM books
-JOIN authors ON books.author_id = authors.author_id
-`);
-res.json(result.rows);
-} catch (err) {
-res.status(500).json({ error: err.message });
-}
+app.get("/events", async (req, res) => {
+  const result = await pool.query(`
+    SELECT e.event_id, e.title, e.location, e.event_date, t.type_name
+    FROM events e
+    JOIN event_types t ON e.type_id = t.type_id
+    ORDER BY event_date
+  `);
+
+  res.json(result.rows);
 });
 
-app.listen(PORT, () => {
-console.log(`Server running on port ${PORT}`);
+// Register user for event
+app.post("/register", async (req, res) => {
+  const { user_id, event_id } = req.body;
+
+  await pool.query(
+    "INSERT INTO registrations (user_id, event_id) VALUES ($1, $2)",
+    [user_id, event_id]
+  );
+
+  res.send("Registration successful");
+});
+
+app.listen(3000, () => {
+  console.log("Server running on port 3000");
 });
