@@ -515,7 +515,7 @@
           <label>Event Type *</label>
           <select id="ev-type"></select>
         </div>
-        <button class="btn-primary" onclick="createEvent()">Create Event</button>
+        <button id="btn-create-event" class="btn-primary" onclick="createEvent()">Create Event</button>
       </div>
 
     </div>
@@ -558,7 +558,7 @@
           <label>Email *</label>
           <input id="u-email" type="email" placeholder="jane@university.edu" />
         </div>
-        <button class="btn-primary" onclick="createUser()">Add User</button>
+        <button id="btn-add-user" class="btn-primary" onclick="createUser()">Add User</button>
       </div>
 
     </div>
@@ -597,7 +597,7 @@
           <label>Event *</label>
           <select id="reg-event"></select>
         </div>
-        <button class="btn-primary" onclick="createRegistration()">Register</button>
+        <button id="btn-register" class="btn-primary" onclick="createRegistration()">Register</button>
       </div>
 
     </div>
@@ -766,7 +766,8 @@
       toast('Title, date, and type are required', 'error'); return;
     }
 
-    const btn = document.querySelector('#tab-events .btn-primary');
+    // Use the button's own id so the selector never fails
+    const btn = document.getElementById('btn-create-event');
     btn.disabled = true; btn.textContent = 'Creating…';
 
     try {
@@ -782,7 +783,6 @@
       ['ev-title','ev-desc','ev-location','ev-date','ev-capacity'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('ev-type').value = '';
 
-      // Reload and show success
       await loadEvents();
       toast('Event created successfully!');
     } catch (err) {
@@ -858,7 +858,7 @@
       toast('All fields are required', 'error'); return;
     }
 
-    const btn = document.querySelector('#tab-users .btn-primary');
+    const btn = document.getElementById('btn-add-user');
     btn.disabled = true; btn.textContent = 'Adding…';
 
     try {
@@ -950,7 +950,7 @@
       toast('Please select both a student and an event', 'error'); return;
     }
 
-    const btn = document.querySelector('#tab-registrations .btn-primary');
+    const btn = document.getElementById('btn-register');
     btn.disabled = true; btn.textContent = 'Registering…';
 
     try {
