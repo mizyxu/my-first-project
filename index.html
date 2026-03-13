@@ -762,11 +762,7 @@
     const capacity = document.getElementById('ev-capacity').value;
     const type_id  = document.getElementById('ev-type').value;
 
-    // DEBUG: show exactly what values we have
-    alert(`DEBUG:\ntitle="${title}"\ndate="${date}"\ntype_id="${type_id}"\n\nIf any of these are empty, that's the problem.`);
-
     if (!title || !date || !type_id) {
-      alert('Validation failed — one of title/date/type_id is empty');
       toast('Title, date, and type are required', 'error');
       return;
     }
@@ -775,14 +771,12 @@
     btn.disabled = true; btn.textContent = 'Creating…';
 
     try {
-      alert('About to fetch POST /api/events ...');
       const res = await fetch(`${API}/events`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, description: desc, location, event_date: date, capacity: capacity || null, type_id })
       });
       const data = await res.json();
-      alert(`Server responded: status=${res.status}\nbody=${JSON.stringify(data)}`);
       if (!res.ok) throw new Error(data.error);
 
       ['ev-title','ev-desc','ev-location','ev-date','ev-capacity'].forEach(id => document.getElementById(id).value = '');
@@ -790,7 +784,6 @@
       await loadEvents();
       toast('Event created successfully!');
     } catch (err) {
-      alert('Error: ' + err.message);
       toast(err.message, 'error');
     } finally {
       btn.disabled = false; btn.textContent = 'Create Event';
