@@ -8,6 +8,7 @@ const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
+// Serves index.html automatically when you open http://localhost:3000
 app.use(express.static(path.join(__dirname)));
 
 // Database connection — replace the password with your actual postgres password
@@ -19,19 +20,9 @@ const pool = new Pool({
   port: 5432
 });
 
-// Test the DB connection on startup so you know immediately if it fails
-pool.query('SELECT NOW()', (err) => {
-  if (err) {
-    console.error('❌ Database connection FAILED:', err.message);
-    console.error('   Check your password and that PostgreSQL is running.');
-  } else {
-    console.log('✅ Database connected successfully');
-  }
-});
-
 // ── EVENTS ────────────────────────────────────────────────────────────────────
 
-// GET all events
+// GET all events (joined with event type name)
 app.get('/api/events', async (req, res) => {
   try {
     const result = await pool.query(`
@@ -66,7 +57,6 @@ app.get('/api/events/:id', async (req, res) => {
 
 // POST create a new event
 app.post('/api/events', async (req, res) => {
-  console.log('POST /api/events body:', req.body); // log incoming data
   const { title, description, location, event_date, capacity, type_id } = req.body;
   if (!title || !event_date || !type_id) {
     return res.status(400).json({ error: 'title, event_date, and type_id are required' });
@@ -77,7 +67,6 @@ app.post('/api/events', async (req, res) => {
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `, [title, description || null, location || null, event_date, capacity || null, type_id]);
-    console.log('Event created:', result.rows[0]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('POST /api/events error:', err.message);
@@ -86,10 +75,12 @@ app.post('/api/events', async (req, res) => {
 });
 
 // DELETE an event by ID
+// Note: ON DELETE CASCADE in the DB automatically removes related registrations
 app.delete('/api/events/:id', async (req, res) => {
   try {
-    await pool.query('DELETE FROM registrations WHERE event_id = $1', [req.params.id]);
-    const result = await pool.query('DELETE FROM events WHERE event_id = $1 RETURNING *', [req.params.id]);
+    const result = await pool.query(
+      'DELETE FROM events WHERE event_id = $1 RETURNING *', [req.params.id]
+    );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Event not found' });
     res.json({ message: 'Event deleted successfully' });
   } catch (err) {
@@ -100,25 +91,11 @@ app.delete('/api/events/:id', async (req, res) => {
 
 // ── USERS ─────────────────────────────────────────────────────────────────────
 
-// GET all users
-// NOTE: We check which columns exist rather than assuming created_at is present
+// GET all users (never expose password_hash to the frontend)
 app.get('/api/users', async (req, res) => {
   try {
-    // First find out which columns actually exist in the users table
-    const colCheck = await pool.query(`
-      SELECT column_name FROM information_schema.columns
-      WHERE table_name = 'users'
-    `);
-    const cols = colCheck.rows.map(r => r.column_name);
-    console.log('users table columns:', cols);
-
-    // Build SELECT list from what actually exists
-    const select = ['user_id', 'first_name', 'last_name', 'email']
-      .filter(c => cols.includes(c));
-    if (cols.includes('created_at')) select.push('created_at');
-
     const result = await pool.query(
-      `SELECT ${select.join(', ')} FROM users ORDER BY last_name`
+      'SELECT user_id, first_name, last_name, email, created_at FROM users ORDER BY last_name'
     );
     res.json(result.rows);
   } catch (err) {
@@ -128,33 +105,22 @@ app.get('/api/users', async (req, res) => {
 });
 
 // POST create a new user
+// password_hash is NOT NULL in the schema, so we store a placeholder value.
+// In a real app you would hash a real password here.
 app.post('/api/users', async (req, res) => {
-  console.log('POST /api/users body:', req.body); // log incoming data
   const { first_name, last_name, email } = req.body;
   if (!first_name || !last_name || !email) {
     return res.status(400).json({ error: 'first_name, last_name, and email are required' });
   }
   try {
-    // Check which columns exist so we don't SELECT a missing created_at
-    const colCheck = await pool.query(`
-      SELECT column_name FROM information_schema.columns
-      WHERE table_name = 'users'
-    `);
-    const cols = colCheck.rows.map(r => r.column_name);
-
-    const returning = ['user_id', 'first_name', 'last_name', 'email']
-      .filter(c => cols.includes(c));
-    if (cols.includes('created_at')) returning.push('created_at');
-
     const result = await pool.query(`
-      INSERT INTO users (first_name, last_name, email)
-      VALUES ($1, $2, $3)
-      RETURNING ${returning.join(', ')}
-    `, [first_name, last_name, email]);
-
-    console.log('User created:', result.rows[0]);
+      INSERT INTO users (first_name, last_name, email, password_hash)
+      VALUES ($1, $2, $3, $4)
+      RETURNING user_id, first_name, last_name, email, created_at
+    `, [first_name, last_name, email, 'placeholder']);
     res.status(201).json(result.rows[0]);
   } catch (err) {
+    // Unique constraint on email
     if (err.code === '23505') {
       return res.status(409).json({ error: 'A user with this email already exists' });
     }
@@ -164,10 +130,12 @@ app.post('/api/users', async (req, res) => {
 });
 
 // DELETE a user by ID
+// Note: ON DELETE CASCADE in the DB automatically removes their registrations
 app.delete('/api/users/:id', async (req, res) => {
   try {
-    await pool.query('DELETE FROM registrations WHERE user_id = $1', [req.params.id]);
-    const result = await pool.query('DELETE FROM users WHERE user_id = $1 RETURNING *', [req.params.id]);
+    const result = await pool.query(
+      'DELETE FROM users WHERE user_id = $1 RETURNING *', [req.params.id]
+    );
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
     res.json({ message: 'User deleted successfully' });
   } catch (err) {
@@ -178,7 +146,7 @@ app.delete('/api/users/:id', async (req, res) => {
 
 // ── REGISTRATIONS ─────────────────────────────────────────────────────────────
 
-// GET all registrations
+// GET all registrations (joined with user and event info)
 app.get('/api/registrations', async (req, res) => {
   try {
     const result = await pool.query(`
@@ -198,7 +166,7 @@ app.get('/api/registrations', async (req, res) => {
       JOIN users       ON registrations.user_id  = users.user_id
       JOIN events      ON registrations.event_id = events.event_id
       JOIN event_types ON events.type_id         = event_types.type_id
-      ORDER BY registrations.registration_id DESC
+      ORDER BY registrations.registration_date DESC
     `);
     res.json(result.rows);
   } catch (err) {
@@ -209,36 +177,16 @@ app.get('/api/registrations', async (req, res) => {
 
 // POST register a user for an event
 app.post('/api/registrations', async (req, res) => {
-  console.log('POST /api/registrations body:', req.body);
   const { user_id, event_id } = req.body;
   if (!user_id || !event_id) {
     return res.status(400).json({ error: 'user_id and event_id are required' });
   }
   try {
-    // Check which columns exist in registrations (status and registration_date may or may not be there)
-    const colCheck = await pool.query(`
-      SELECT column_name FROM information_schema.columns
-      WHERE table_name = 'registrations'
-    `);
-    const cols = colCheck.rows.map(r => r.column_name);
-    console.log('registrations table columns:', cols);
-
-    // Build the INSERT based on what columns actually exist
-    let query, params;
-    if (cols.includes('status') && cols.includes('registration_date')) {
-      query = `INSERT INTO registrations (user_id, event_id, status)
-               VALUES ($1, $2, 'confirmed') RETURNING *`;
-    } else if (cols.includes('status')) {
-      query = `INSERT INTO registrations (user_id, event_id, status)
-               VALUES ($1, $2, 'confirmed') RETURNING *`;
-    } else {
-      query = `INSERT INTO registrations (user_id, event_id)
-               VALUES ($1, $2) RETURNING *`;
-    }
-    params = [user_id, event_id];
-
-    const result = await pool.query(query, params);
-    console.log('Registration created:', result.rows[0]);
+    const result = await pool.query(`
+      INSERT INTO registrations (user_id, event_id)
+      VALUES ($1, $2)
+      RETURNING *
+    `, [user_id, event_id]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     if (err.code === '23505') {
@@ -265,6 +213,7 @@ app.delete('/api/registrations/:id', async (req, res) => {
 
 // ── EVENT TYPES ───────────────────────────────────────────────────────────────
 
+// GET all event types
 app.get('/api/event-types', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM event_types ORDER BY type_name');
@@ -276,11 +225,11 @@ app.get('/api/event-types', async (req, res) => {
 });
 
 // ── START SERVER ──────────────────────────────────────────────────────────────
+// app.listen() must always be last — all routes defined above this line
 app.listen(PORT, () => {
+  console.log(`✅  Server running → http://localhost:${PORT}`);
   console.log('');
-  console.log(`🚀 Server running → http://localhost:${PORT}`);
-  console.log('');
-  console.log('  Endpoints:');
+  console.log('  API endpoints:');
   console.log('  GET    /api/events');
   console.log('  POST   /api/events');
   console.log('  DELETE /api/events/:id');
@@ -291,5 +240,4 @@ app.listen(PORT, () => {
   console.log('  POST   /api/registrations');
   console.log('  DELETE /api/registrations/:id');
   console.log('  GET    /api/event-types');
-  console.log('');
 });
