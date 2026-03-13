@@ -447,11 +447,139 @@
 
     .tab-view { display: none; }
     .tab-view.active { display: block; }
+
+    /* ── Event detail modal ── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px);
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      animation: fadeIn 0.18s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 520px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      animation: slideUp 0.22s ease;
+      overflow: hidden;
+    }
+    [data-theme="light"] .modal { box-shadow: 0 24px 60px rgba(0,0,0,0.15); }
+    [data-theme="dark"]  .modal { box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .modal-header {
+      padding: 1.4rem 1.5rem 1rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .modal-header-top {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 1rem;
+    }
+    .modal-header h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.2rem; font-weight: 700; line-height: 1.3;
+    }
+    .modal-close {
+      width: 30px; height: 30px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--muted); font-size: 1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.15s;
+    }
+    .modal-close:hover { border-color: var(--danger); color: var(--danger); }
+    .modal-meta {
+      display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.75rem;
+    }
+    .modal-meta-item {
+      display: flex; align-items: center; gap: 0.35rem;
+      font-size: 0.78rem; color: var(--muted);
+    }
+    .modal-meta-item svg { opacity: 0.6; }
+    .modal-body { padding: 1.25rem 1.5rem; overflow-y: auto; flex: 1; }
+    .modal-body h4 {
+      font-size: 0.72rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--muted); margin-bottom: 0.85rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .modal-body h4 span {
+      background: var(--tag-bg); color: var(--tag-color);
+      border: 1px solid var(--tag-border);
+      padding: 0.15rem 0.55rem; border-radius: 20px; font-size: 0.7rem;
+    }
+    .attendee-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .attendee-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.65rem 0.85rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 10px; transition: border-color 0.15s;
+    }
+    .attendee-row:hover { border-color: var(--violet); }
+    .attendee-info { display: flex; align-items: center; gap: 0.65rem; }
+    .attendee-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--violet), var(--teal));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .attendee-name { font-size: 0.875rem; font-weight: 600; color: var(--text); }
+    .attendee-email { font-size: 0.75rem; color: var(--muted); }
+    .modal-empty { text-align: center; padding: 2.5rem 1rem; color: var(--muted); font-size: 0.875rem; }
+    .modal-empty .empty-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); flex-shrink: 0; }
+
   </style>
 </head>
 <body>
 
 <div id="toast-container"></div>
+
+<!-- ── Event registrants modal ── -->
+<div id="event-modal" class="modal-backdrop" style="display:none" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-top">
+        <h3 id="modal-title">Event Title</h3>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-meta">
+        <div class="modal-meta-item">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          <span id="modal-date">—</span>
+        </div>
+        <div class="modal-meta-item">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span id="modal-location">—</span>
+        </div>
+        <div class="modal-meta-item">
+          <span id="modal-type-tag" class="type-tag">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <h4>Registered Students <span id="modal-count">0</span></h4>
+      <div id="modal-attendee-list"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" style="background:var(--surface);color:var(--text);border:1px solid var(--border)" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
 
 <header>
   <div class="logo">Campus <span>Events</span></div>
@@ -718,7 +846,7 @@
     grid.innerHTML = filtered.map((ev, i) => {
       const d = fmtDate(ev.event_date);
       return `
-        <div class="event-card" style="animation-delay:${i * 0.035}s">
+        <div class="event-card" style="animation-delay:${i * 0.035}s;cursor:pointer" onclick="openEventModal(${ev.event_id})">
           <div class="card-accent-bar"></div>
           <div class="card-top">
             <div class="date-chip">
@@ -748,7 +876,7 @@
           </div>
           <div class="card-footer">
             <span class="full-date">${d.full} · ${d.time}</span>
-            <button class="btn-delete-sm" onclick="deleteEvent(${ev.event_id})">Delete</button>
+            <button class="btn-delete-sm" onclick="event.stopPropagation();deleteEvent(${ev.event_id})">Delete</button>
           </div>
         </div>`;
     }).join('');
@@ -983,6 +1111,89 @@
       toast(err.message, 'error');
     }
   }
+
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // EVENT MODAL — show registrants when a card is clicked
+  // ══════════════════════════════════════════════════════════════════════════
+
+  async function openEventModal(eventId) {
+    // Find the event from already-loaded data
+    const ev = allEvents.find(e => e.event_id === eventId);
+    if (!ev) return;
+
+    const d = fmtDate(ev.event_date);
+
+    // Populate header info
+    document.getElementById('modal-title').textContent    = ev.title;
+    document.getElementById('modal-date').textContent     = `${d.full} · ${d.time}`;
+    document.getElementById('modal-location').textContent = ev.location || 'Location TBD';
+    document.getElementById('modal-type-tag').textContent = ev.type_name || 'General';
+
+    // Show loading state
+    document.getElementById('modal-count').textContent       = '…';
+    document.getElementById('modal-attendee-list').innerHTML =
+      '<div class="modal-empty"><div class="spinner" style="margin:0 auto 0.5rem"></div>Loading…</div>';
+
+    // Show the modal
+    document.getElementById('event-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    // Fetch registrations for this specific event
+    try {
+      const res = await fetch(`${API}/registrations`);
+      if (!res.ok) throw new Error('Could not load registrations');
+      const allRegs = await res.json();
+
+      // Filter to only this event's registrations
+      const regs = allRegs.filter(r => r.event_id === eventId);
+
+      document.getElementById('modal-count').textContent = regs.length;
+
+      if (regs.length === 0) {
+        document.getElementById('modal-attendee-list').innerHTML = `
+          <div class="modal-empty">
+            <div class="empty-icon">🎟️</div>
+            No one registered yet
+          </div>`;
+        return;
+      }
+
+      // Build the attendee list
+      document.getElementById('modal-attendee-list').innerHTML = `
+        <div class="attendee-list">
+          ${regs.map(r => {
+            // Make initials for the avatar
+            const initials = (r.first_name[0] + r.last_name[0]).toUpperCase();
+            return `
+              <div class="attendee-row">
+                <div class="attendee-info">
+                  <div class="attendee-avatar">${initials}</div>
+                  <div>
+                    <div class="attendee-name">${r.first_name} ${r.last_name}</div>
+                    <div class="attendee-email">${r.email}</div>
+                  </div>
+                </div>
+              </div>`;
+          }).join('')}
+        </div>`;
+    } catch (err) {
+      document.getElementById('modal-attendee-list').innerHTML =
+        `<div class="modal-empty" style="color:var(--danger)">⚠️ ${err.message}</div>`;
+    }
+  }
+
+  function closeModal(e) {
+    // If called from backdrop click, only close if they clicked the backdrop itself
+    if (e && e.target !== document.getElementById('event-modal')) return;
+    document.getElementById('event-modal').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  // Close modal with Escape key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
 
   // ── Boot ────────────────────────────────────────────────────────────────────
   loadEvents();
