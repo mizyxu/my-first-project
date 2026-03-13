@@ -8,18 +8,21 @@ const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
-// Serve index.html from the same folder as server.js
+// Serves index.html automatically when you open http://localhost:3000
 app.use(express.static(path.join(__dirname)));
 
+// Database connection — replace the password with your actual postgres password
 const pool = new Pool({
   user: 'postgres',
   host: 'localhost',
   database: 'eventmanager',
-  password: 'Cranbrook1',   // <-- replace with your actual password
+  password: '---',
   port: 5432
 });
 
-// ── Events ──────────────────────────────────────────────────────────────────
+// ── EVENTS ────────────────────────────────────────────────────────────────────
+
+// GET all events (joined with event type name)
 app.get('/api/events', async (req, res) => {
   try {
     const result = await pool.query(`
@@ -35,7 +38,7 @@ app.get('/api/events', async (req, res) => {
   }
 });
 
-// ── Single event ─────────────────────────────────────────────────────────────
+// GET single event by ID
 app.get('/api/events/:id', async (req, res) => {
   try {
     const result = await pool.query(`
@@ -44,7 +47,6 @@ app.get('/api/events/:id', async (req, res) => {
       JOIN event_types ON events.type_id = event_types.type_id
       WHERE events.event_id = $1
     `, [req.params.id]);
-
     if (result.rows.length === 0) return res.status(404).json({ error: 'Event not found' });
     res.json(result.rows[0]);
   } catch (err) {
@@ -53,23 +55,119 @@ app.get('/api/events/:id', async (req, res) => {
   }
 });
 
-// ── Registrations ────────────────────────────────────────────────────────────
+// POST create a new event
+app.post('/api/events', async (req, res) => {
+  const { title, description, location, event_date, capacity, type_id } = req.body;
+  // Validate required fields
+  if (!title || !event_date || !type_id) {
+    return res.status(400).json({ error: 'title, event_date, and type_id are required' });
+  }
+  try {
+    const result = await pool.query(`
+      INSERT INTO events (title, description, location, event_date, capacity, type_id)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *
+    `, [title, description, location, event_date, capacity, type_id]);
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('POST /api/events error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE an event by ID
+app.delete('/api/events/:id', async (req, res) => {
+  try {
+    // First remove all registrations for this event (so foreign key doesn't block delete)
+    await pool.query('DELETE FROM registrations WHERE event_id = $1', [req.params.id]);
+    const result = await pool.query(
+      'DELETE FROM events WHERE event_id = $1 RETURNING *', [req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Event not found' });
+    res.json({ message: 'Event deleted successfully' });
+  } catch (err) {
+    console.error('DELETE /api/events/:id error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── USERS ─────────────────────────────────────────────────────────────────────
+
+// GET all users (never expose password_hash to frontend)
+app.get('/api/users', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT user_id, first_name, last_name, email, created_at FROM users ORDER BY last_name'
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /api/users error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST create a new user
+app.post('/api/users', async (req, res) => {
+  const { first_name, last_name, email } = req.body;
+  if (!first_name || !last_name || !email) {
+    return res.status(400).json({ error: 'first_name, last_name, and email are required' });
+  }
+  try {
+    const result = await pool.query(`
+      INSERT INTO users (first_name, last_name, email)
+      VALUES ($1, $2, $3)
+      RETURNING user_id, first_name, last_name, email, created_at
+    `, [first_name, last_name, email]);
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    // Unique violation means email already exists
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'A user with this email already exists' });
+    }
+    console.error('POST /api/users error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE a user by ID
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    // Remove their registrations first
+    await pool.query('DELETE FROM registrations WHERE user_id = $1', [req.params.id]);
+    const result = await pool.query(
+      'DELETE FROM users WHERE user_id = $1 RETURNING *', [req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+    res.json({ message: 'User deleted successfully' });
+  } catch (err) {
+    console.error('DELETE /api/users/:id error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── REGISTRATIONS ─────────────────────────────────────────────────────────────
+
+// GET all registrations (joined with user and event info)
 app.get('/api/registrations', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT
         registrations.registration_id,
+        registrations.registration_date,
+        registrations.status,
+        users.user_id,
         users.first_name,
         users.last_name,
         users.email,
+        events.event_id,
         events.title,
         events.event_date,
         event_types.type_name
       FROM registrations
-      JOIN users      ON registrations.user_id  = users.user_id
-      JOIN events     ON registrations.event_id = events.event_id
-      JOIN event_types ON events.type_id        = event_types.type_id
-      ORDER BY events.event_date
+      JOIN users       ON registrations.user_id  = users.user_id
+      JOIN events      ON registrations.event_id = events.event_id
+      JOIN event_types ON events.type_id         = event_types.type_id
+      ORDER BY registrations.registration_date DESC
     `);
     res.json(result.rows);
   } catch (err) {
@@ -78,7 +176,7 @@ app.get('/api/registrations', async (req, res) => {
   }
 });
 
-// ── Register a user for an event ─────────────────────────────────────────────
+// POST register a user for an event
 app.post('/api/registrations', async (req, res) => {
   const { user_id, event_id } = req.body;
   if (!user_id || !event_id) {
@@ -92,16 +190,31 @@ app.post('/api/registrations', async (req, res) => {
     `, [user_id, event_id]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    // Unique-violation → already registered
     if (err.code === '23505') {
-      return res.status(409).json({ error: 'User already registered for this event' });
+      return res.status(409).json({ error: 'This user is already registered for that event' });
     }
     console.error('POST /api/registrations error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ── Event types ───────────────────────────────────────────────────────────────
+// DELETE a registration by ID
+app.delete('/api/registrations/:id', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'DELETE FROM registrations WHERE registration_id = $1 RETURNING *', [req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Registration not found' });
+    res.json({ message: 'Registration cancelled successfully' });
+  } catch (err) {
+    console.error('DELETE /api/registrations/:id error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── EVENT TYPES ───────────────────────────────────────────────────────────────
+
+// GET all event types
 app.get('/api/event-types', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM event_types ORDER BY type_name');
@@ -112,26 +225,20 @@ app.get('/api/event-types', async (req, res) => {
   }
 });
 
-// ── Users ─────────────────────────────────────────────────────────────────────
-app.get('/api/users', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT user_id, first_name, last_name, email FROM users ORDER BY last_name');
-    res.json(result.rows);
-  } catch (err) {
-    console.error('GET /api/users error:', err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ── Start server ──────────────────────────────────────────────────────────────
-// NOTE: app.listen() is LAST — all routes must be defined before this line
+// ── START SERVER ──────────────────────────────────────────────────────────────
+// app.listen() must always be last — all routes defined above this line
 app.listen(PORT, () => {
   console.log(`✅  Server running → http://localhost:${PORT}`);
-  console.log('    Routes available:');
-  console.log('      GET  /api/events');
-  console.log('      GET  /api/events/:id');
-  console.log('      GET  /api/registrations');
-  console.log('      POST /api/registrations');
-  console.log('      GET  /api/event-types');
-  console.log('      GET  /api/users');
+  console.log('');
+  console.log('  API endpoints:');
+  console.log('  GET    /api/events');
+  console.log('  POST   /api/events');
+  console.log('  DELETE /api/events/:id');
+  console.log('  GET    /api/users');
+  console.log('  POST   /api/users');
+  console.log('  DELETE /api/users/:id');
+  console.log('  GET    /api/registrations');
+  console.log('  POST   /api/registrations');
+  console.log('  DELETE /api/registrations/:id');
+  console.log('  GET    /api/event-types');
 });
