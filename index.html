@@ -515,7 +515,7 @@
           <label>Event Type *</label>
           <select id="ev-type"></select>
         </div>
-        <button id="btn-create-event" class="btn-primary" onclick="createEvent()">Create Event</button>
+        <button id="btn-create-event" class="btn-primary" onclick="submitCreateEvent()">Create Event</button>
       </div>
 
     </div>
@@ -754,7 +754,7 @@
     }).join('');
   }
 
-  async function createEvent() {
+  async function submitCreateEvent() {
     const title    = document.getElementById('ev-title').value.trim();
     const desc     = document.getElementById('ev-desc').value.trim();
     const location = document.getElementById('ev-location').value.trim();
